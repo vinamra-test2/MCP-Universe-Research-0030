@@ -1,0 +1,35 @@
+name: Issue Automation
+
+on:
+  issues:
+    types: [opened, labeled]
+
+jobs:
+  respond-to-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Comment on issue based on label
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const labels = issue.labels.map(label => label.name.toLowerCase());
+            
+            let comment = '';
+            
+            if (labels.includes('bug')) {
+              comment = 'Thank you. We will fix it.';
+            } else if (labels.includes('feature')) {
+              comment = 'Thank you, we will consider to include this feature.';
+            } else if (labels.includes('discussion')) {
+              comment = 'Thanks for starting this discussion! We welcome community input.';
+            }
+            
+            if (comment) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: comment
+              });
+            }
